@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -48,21 +9,23 @@
         body {
             background-color: #1a1a1a; /* Dark background */
             color: #ffffff;
+            font-family: 'Inter', sans-serif;
         }
         .nav-link { transition: color 0.3s ease; }
         .nav-link:hover { color: #f97316; /* Orange hover effect */ }
-        .gallery-table { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .gallery-table { max-width: 1280px; margin: 0 auto; padding: 20px; }
         .gallery-cell {
             background: #2d2d2d; /* Dark card background */
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
             cursor: pointer;
             position: relative;
             opacity: 0;
             transform: translateY(50px);
-            animation: fadeInUp 0.5s ease-in-out forwards;
+            animation: fadeInUp 0.6s ease-in-out forwards;
         }
         .gallery-cell:nth-child(1) { animation-delay: 0.1s; }
         .gallery-cell:nth-child(2) { animation-delay: 0.2s; }
@@ -75,8 +38,9 @@
         .gallery-cell:nth-child(9) { animation-delay: 0.9s; }
         .gallery-cell:nth-child(10) { animation-delay: 1.0s; }
         .gallery-cell:hover {
-            box-shadow: 0 0 20px 5px rgba(249, 115, 22, 0.8); /* Orange glow */
-            transform: translateY(-5px);
+            box-shadow: 0 0 25px 8px rgba(249, 115, 22, 0.9);
+            transform: translateY(-8px);
+            border-color: rgba(249, 115, 22, 0.6);
         }
         .gallery-cell::before {
             content: '';
@@ -85,12 +49,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(249, 115, 22, 0.3) 0%, transparent 70%);
+            background: radial-gradient(circle at center, rgba(249, 115, 22, 0.35) 0%, transparent 70%);
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 1;
             pointer-events: none;
-            animation: dreamLightPulse 2s ease-in-out infinite;
+            animation: dreamLightPulse 1.8s ease-in-out infinite;
             animation-play-state: paused;
         }
         .gallery-cell:hover::before {
@@ -98,34 +62,48 @@
             animation-play-state: running;
         }
         @keyframes dreamLightPulse {
-            0% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.05); }
-            100% { opacity: 0.3; transform: scale(1); }
+            0% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.06); }
+            100% { opacity: 0.35; transform: scale(1); }
         }
         .gallery-cell img {
             object-fit: cover;
             width: 100%;
-            height: 250px;
+            height: 280px;
             position: relative;
             z-index: 0;
+            transition: filter 0.3s ease;
+        }
+        .gallery-cell:hover img {
+            filter: brightness(1.1);
         }
         .gallery-cell-content {
-            padding: 15px;
-            background: linear-gradient(180deg, transparent, #f97316); /* Orange gradient overlay */
+            padding: 20px;
+            background: linear-gradient(180deg, transparent, rgba(249, 115, 22, 0.8));
             position: relative;
             z-index: 2;
         }
-        .gallery-cell h3 { font-size: 1.25rem; font-weight: 700; color: #ffffff; }
-        .gallery-cell p { color: #e5e5e5; font-size: 0.9rem; }
+        .gallery-cell h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        .gallery-cell p {
+            color: #e5e5e5;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
         .section-title {
-            font-size: 2.5rem;
+            font-size: 2.75rem;
             font-weight: 800;
-            color: #f97316; /* Orange title */
+            color: #f97316;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeInUp 1s ease-in-out forwards;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
         }
         .btn-primary {
             background-color: #f97316;
@@ -133,9 +111,13 @@
             padding: 12px 24px;
             border-radius: 8px;
             font-weight: 600;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .btn-primary:hover { background-color: #ea580c; transform: scale(1.05); }
+        .btn-primary:hover {
+            background-color: #ea580c;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.5);
+        }
         #home {
             min-height: 100vh;
             display: flex;
@@ -172,22 +154,26 @@
             100% { background-position: 100px 100px; }
         }
         #home h2 {
-            font-size: 4.5rem;
+            font-size: 3.5rem;
             font-weight: 900;
             color: #f97316;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
             z-index: 1;
             animation: fadeIn 2s ease-in-out;
         }
         #home p {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             color: #ffffff;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto 1.5rem;
             z-index: 1;
             animation: fadeIn 2.5s ease-in-out;
+        }
+        @media (max-width: 640px) {
+            #home h2 { font-size: 2.5rem; }
+            #home p { font-size: 1rem; max-width: 90%; }
         }
         @keyframes fadeIn {
             0% { opacity: 0; transform: translateY(20px); }
@@ -198,16 +184,57 @@
             100% { opacity: 1; transform: translateY(0); }
         }
         #home .container { z-index: 1; }
-        #about .section-title, #about p {
+        #about .section-title, #about .about-content, #about .about-image-container, #about .about-text {
             opacity: 0;
             transform: translateY(30px);
             animation: slideUp 1s ease-in-out forwards;
         }
         #about .section-title { animation-delay: 0.2s; }
-        #about p { animation-delay: 0.4s; }
+        #about .about-content { animation-delay: 0.3s; }
+        #about .about-image-container { animation-delay: 0.4s; }
+        #about .about-text { animation-delay: 0.5s; }
         @keyframes slideUp {
             0% { opacity: 0; transform: translateY(30px); }
             100% { opacity: 1; transform: translateY(0); }
+        }
+        /* About Image and Circle Background */
+        .about-image-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            width: 300px;
+            height: 300px;
+        }
+        .about-image {
+            width: 280px;
+            height: 280px;
+            object-fit: contain;
+            object-position: center top;
+            z-index: 2;
+            clip-path: circle(50% at 50% 50%);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .about-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background-color: #f97316;
+            border-radius: 50%;
+            z-index: 1;
+            opacity: 0.9;
+        }
+        @media (max-width: 640px) {
+            .about-image-container { width: 220px; height: 220px; }
+            .about-image { width: 200px; height: 200px; }
+            .about-circle { width: 220px; height: 220px; }
         }
         /* Modal Styles */
         .modal {
@@ -217,7 +244,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -228,10 +255,10 @@
         .modal.active { display: flex; opacity: 1; }
         .modal img {
             max-width: 90%;
-            max-height: 90vh;
+            max-height: 80vh;
             border: 4px solid #f97316;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 6px 25px rgba(249, 115, 22, 0.5);
             transform: scale(0.8) rotate(0deg);
             transition: transform 0.5s ease;
             animation: movingImage 10s ease-in-out infinite;
@@ -244,8 +271,8 @@
         }
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             color: #f97316;
             font-size: 2rem;
             cursor: pointer;
@@ -268,8 +295,81 @@
             transition: background 0.3s ease, transform 0.3s ease;
         }
         .modal-nav:hover { background: #f97316; color: #ffffff; transform: scale(1.1); }
-        .modal-prev { left: 20px; }
-        .modal-next { right: 20px; }
+        .modal-prev { left: 15px; }
+        .modal-next { right: 15px; }
+        @media (max-width: 640px) {
+            .modal img { max-height: 70vh; }
+            .modal-close { font-size: 1.5rem; }
+            .modal-nav { width: 32px; height: 32px; font-size: 1rem; }
+        }
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background-color: #f97316;
+            transition: all 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 75%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .mobile-menu.active {
+            display: flex;
+            transform: translateX(0);
+        }
+        .mobile-menu li {
+            margin: 1.5rem 0;
+        }
+        .mobile-menu a {
+            font-size: 1.5rem;
+            color: #ffffff;
+            transition: color 0.3s ease;
+        }
+        .mobile-menu a:hover {
+            color: #f97316;
+        }
+        @media (max-width: 640px) {
+            .hamburger { display: flex; }
+            .desktop-menu { display: none; }
+            .gallery-cell img { height: 200px; }
+            .gallery-cell-content { padding: 15px; }
+            .gallery-cell h3 { font-size: 1.1rem; }
+            .gallery-cell p { font-size: 0.85rem; }
+            .section-title { font-size: 2rem; }
+        }
+        @media (min-width: 641px) {
+            .desktop-menu { display: flex; }
+            .hamburger { display: none; }
+        }
     </style>
 </head>
 <body class="font-sans">
@@ -277,20 +377,31 @@
     <header class="bg-black shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-orange-500">Uzair Khan</h1>
-            <ul class="flex space-x-6">
+            <ul class="desktop-menu flex space-x-6">
                 <li><a href="#home" class="nav-link text-lg text-white">Home</a></li>
                 <li><a href="#about" class="nav-link text-lg text-white">About Me</a></li>
                 <li><a href="#gallery" class="nav-link text-lg text-white">Gallery</a></li>
                 <li><a href="#contact" class="nav-link text-lg text-white">Contact</a></li>
             </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </nav>
+        <ul class="mobile-menu">
+            <li><a href="#home" class="nav-link text-white">Home</a></li>
+            <li><a href="#about" class="nav-link text-white">About Me</a></li>
+            <li><a href="#gallery" class="nav-link text-white">Gallery</a></li>
+            <li><a href="#contact" class="nav-link text-white">Contact</a></li>
+        </ul>
     </header>
 
     <!-- Home Section -->
     <section id="home">
         <div class="container mx-auto px-4">
             <h2>Uzair Khan</h2>
-            <p>Passionate Graphic Designer & Digital Marketer To Grow Your Brand</p>
+            <p>Welcome To My Portfolio Explore My Work & Me</p>
             <a href="#gallery" class="btn-primary">Explore My Work</a>
         </div>
     </section>
@@ -299,9 +410,19 @@
     <section id="about" class="py-16 bg-gray-900">
         <div class="container mx-auto px-4">
             <h2 class="section-title text-center mb-8">About Me</h2>
-            <p class="text-lg max-w-2xl mx-auto text-center text-gray-300">
-                I'm Uzair Khan, a Graphic Designer & Digital Marketer with around 2 years of experience in this field. I can make your business/brand grow online with a brilliant grip of my field.
-            </p>
+            <div class="about-content flex flex-col items-center">
+                <div class="about-image-container">
+                    <div class="about-circle"></div>
+                    <img src="https://res.cloudinary.com/dyjufmakp/image/upload/v1756567631/IMG20250830201501-removebg-preview_1_ftlxan.png" alt="Uzair Khan" class="about-image">
+                </div>
+                <div class="about-text text-center">
+                    <h3 class="text-2xl font-bold text-orange-500 mb-2">Uzair Khan</h3>
+                    <p class="text-lg text-gray-300 mb-4">Passionate Graphic Designer, Digital Marketer & Website Designer</p>
+                    <p class="text-lg max-w-2xl mx-auto text-gray-300">
+                        I'm Uzair Khan, a Graphic Designer , Digital Marketer & Website Designer. I can make your business/brand grow online with a brilliant grip of my field.
+                    </p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -309,7 +430,7 @@
     <section id="gallery" class="py-16 bg-black">
         <div class="container mx-auto px-4">
             <h2 class="section-title text-center mb-12">My Poster Designs</h2>
-            <div class="gallery-table grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="gallery-table grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
                 <div class="gallery-cell" data-image="https://res.cloudinary.com/dyjufmakp/image/upload/v1753377110/WhatsApp_Image_2025-07-24_at_22.10.54_b4628a83_xkhgkl.jpg">
                     <img src="https://res.cloudinary.com/dyjufmakp/image/upload/v1753377110/WhatsApp_Image_2025-07-24_at_22.10.54_b4628a83_xkhgkl.jpg" alt="Poster Design 1">
                     <div class="gallery-cell-content">
@@ -425,7 +546,7 @@
     <footer class="bg-black text-white py-8">
         <div class="container mx-auto px-4 text-center">
             <h3 class="text-xl font-semibold mb-4 text-orange-500">Get in Touch</h3>
-            <div class="flex justify-center space-x-6 mb-4">
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-4">
                 <a href="mailto:techdastak124@gmail.com" class="text-gray-300 hover:text-orange-500">Email</a>
                 <a href="https://www.linkedin.com/in/uzair-khan-bb8337311/" target="_blank" class="text-gray-300 hover:text-orange-500">LinkedIn</a>
                 <a href="https://www.facebook.com/profile.php?id=61571789170452" target="_blank" class="text-gray-300 hover:text-orange-500">Facebook</a>
@@ -436,8 +557,58 @@
         </div>
     </footer>
 
-    <!-- Smooth Scroll and Modal Script -->
+    <!-- Excel File Handling Script -->
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+    </script>
+
+    <!-- Smooth Scroll, Modal, and Hamburger Menu Script -->
     <script>
+        // Hamburger Menu Toggle
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.mobile-menu .nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            });
+        });
+
         // Smooth scrolling for navigation
         document.querySelectorAll('.nav-link').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
