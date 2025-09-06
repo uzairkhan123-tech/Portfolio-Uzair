@@ -37,6 +37,7 @@
         .gallery-cell:nth-child(8) { animation-delay: 0.8s; }
         .gallery-cell:nth-child(9) { animation-delay: 0.9s; }
         .gallery-cell:nth-child(10) { animation-delay: 1.0s; }
+        .gallery-cell:nth-child(11) { animation-delay: 1.1s; }
         .gallery-cell:hover {
             box-shadow: 0 0 25px 8px rgba(249, 115, 22, 0.9);
             transform: translateY(-8px);
@@ -253,7 +254,7 @@
             transition: opacity 0.5s ease;
         }
         .modal.active { display: flex; opacity: 1; }
-        .modal img {
+        .modal img, .modal video {
             max-width: 90%;
             max-height: 80vh;
             border: 4px solid #f97316;
@@ -263,7 +264,7 @@
             transition: transform 0.5s ease;
             animation: movingImage 10s ease-in-out infinite;
         }
-        .modal.active img { transform: scale(1) rotate(0deg); }
+        .modal.active img, .modal.active video { transform: scale(1) rotate(0deg); }
         @keyframes movingImage {
             0% { transform: scale(1) rotate(0deg); }
             50% { transform: scale(1.02) rotate(1deg); }
@@ -298,7 +299,7 @@
         .modal-prev { left: 15px; }
         .modal-next { right: 15px; }
         @media (max-width: 640px) {
-            .modal img { max-height: 70vh; }
+            .modal img, .modal video { max-height: 70vh; }
             .modal-close { font-size: 1.5rem; }
             .modal-nav { width: 32px; height: 32px; font-size: 1rem; }
         }
@@ -419,7 +420,7 @@
                     <h3 class="text-2xl font-bold text-orange-500 mb-2">Uzair Khan</h3>
                     <p class="text-lg text-gray-300 mb-4">Passionate Graphic Designer, Digital Marketer & Website Designer</p>
                     <p class="text-lg max-w-2xl mx-auto text-gray-300">
-                        I'm Uzair Khan, a Graphic Designer , Digital Marketer & Website Designer. I can make your business/brand grow online with a brilliant grip of my field.
+                        I'm Uzair Khan, a Graphic Designer, Digital Marketer & Website Designer. I can make your business/brand grow online with a brilliant grip of my field.
                     </p>
                 </div>
             </div>
@@ -429,7 +430,7 @@
     <!-- Gallery Section -->
     <section id="gallery" class="py-16 bg-black">
         <div class="container mx-auto px-4">
-            <h2 class="section-title text-center mb-12">My Poster Designs</h2>
+            <h2 class="section-title text-center mb-12">My Designs</h2>
             <div class="gallery-table grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
                 <div class="gallery-cell" data-image="https://res.cloudinary.com/dyjufmakp/image/upload/v1753377110/WhatsApp_Image_2025-07-24_at_22.10.54_b4628a83_xkhgkl.jpg">
                     <img src="https://res.cloudinary.com/dyjufmakp/image/upload/v1753377110/WhatsApp_Image_2025-07-24_at_22.10.54_b4628a83_xkhgkl.jpg" alt="Poster Design 1">
@@ -501,15 +502,27 @@
                         <p>Eye-catching design for social engagement</p>
                     </div>
                 </div>
+                <div class="gallery-cell" data-video="https://res.cloudinary.com/dyjufmakp/video/upload/v1757155101/WhatsApp_Video_2025-09-04_at_21.58.26_0987fca7_vgwqxx.mp4">
+                    <img src="https://res.cloudinary.com/dyjufmakp/image/upload/v1757155469/Screenshot_2025-09-06_154402_xjfmda.png" alt="Website Project">
+                    <div class="gallery-cell-content">
+                        <h3>Website Project</h3>
+                        <p>Responsive website design for Quran Academy</p>
+                        <a href="https://thelegacyofquranacademy.com/" target="_blank" class="text-orange-500 hover:text-orange-600 text-sm font-semibold mt-2 inline-block">Visit Website</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Modal for Full-Size Image -->
+    <!-- Modal for Full-Size Image or Video -->
     <div id="imageModal" class="modal">
         <span class="modal-close">×</span>
         <div class="modal-nav modal-prev">◄</div>
-        <img id="modalImage" src="" alt="Full-size Poster">
+        <img id="modalImage" src="https://res.cloudinary.com/dyjufmakp/video/upload/v1757155101/WhatsApp_Video_2025-09-04_at_21.58.26_0987fca7_vgwqxx.mp4" alt="Full-size Poster" style="display: none;">
+        <video id="modalVideo" controls style="display: none;" muted>
+            <source src="https://res.cloudinary.com/dyjufmakp/video/upload/v1757155101/WhatsApp_Video_2025-09-04_at_21.58.26_0987fca7_vgwqxx.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
         <div class="modal-nav modal-next">►</div>
     </div>
 
@@ -622,44 +635,60 @@
         // Modal functionality with navigation
         const modal = document.getElementById('imageModal');
         const modalImage = document.getElementById('modalImage');
+        const modalVideo = document.getElementById('modalVideo');
         const modalClose = document.querySelector('.modal-close');
         const modalPrev = document.querySelector('.modal-prev');
         const modalNext = document.querySelector('.modal-next');
         const cells = document.querySelectorAll('.gallery-cell');
         let currentIndex = 0;
 
-        function updateModalImage(index) {
-            const imageSrc = cells[index].getAttribute('data-image');
-            modalImage.src = imageSrc;
-            modalImage.alt = cells[index].querySelector('img').alt;
+        function updateModalContent(index) {
+            const cell = cells[index];
+            const imageSrc = cell.getAttribute('data-image');
+            const videoSrc = cell.getAttribute('data-video');
+            
+            if (videoSrc) {
+                modalImage.style.display = 'none';
+                modalVideo.style.display = 'block';
+                modalVideo.querySelector('source').src = videoSrc;
+                modalVideo.load();
+                modalVideo.play();
+            } else {
+                modalVideo.style.display = 'none';
+                modalImage.style.display = 'block';
+                modalImage.src = imageSrc;
+                modalImage.alt = cell.querySelector('img').alt;
+            }
             currentIndex = index;
         }
 
         cells.forEach((cell, index) => {
             cell.addEventListener('click', function() {
-                updateModalImage(index);
+                updateModalContent(index);
                 modal.classList.add('active');
             });
         });
 
         modalClose.addEventListener('click', () => {
             modal.classList.remove('active');
+            modalVideo.pause();
         });
 
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.remove('active');
+                modalVideo.pause();
             }
         });
 
         modalPrev.addEventListener('click', () => {
             currentIndex = (currentIndex - 1 + cells.length) % cells.length;
-            updateModalImage(currentIndex);
+            updateModalContent(currentIndex);
         });
 
         modalNext.addEventListener('click', () => {
             currentIndex = (currentIndex + 1) % cells.length;
-            updateModalImage(currentIndex);
+            updateModalContent(currentIndex);
         });
     </script>
 </body>
